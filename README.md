@@ -61,4 +61,4 @@ clear | Clears the screen.
 **Current version is 1.0**
 
 ## Thanks
-**Thanks everyone who tries my script and/or provides feedback. I want to continue improving and building out more modules/commands. It would be a dream come true for members of the community to assist in the development of new modules to call. Maybe one day we will have something really special here.**
+**Thanks everyone who tries my script and/or provides feedback. I want to continue improving and building out more modules/commands. Let me know if you have any ideas or want to contribute**
