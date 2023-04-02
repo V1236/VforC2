@@ -341,9 +341,8 @@ def input_with_backspace(prompt=''):
 
 def dbust():
     try:
-        url_pattern = r"^https?://.+"
         url = input_with_backspace("\nEnter a valid URL > ")
-        while not re.match(url_pattern, url):
+        while not validators.url(url):
             print("Invalid input. Please enter a valid URL (e.g. https://example.com/).")
             url = input_with_backspace("Enter a valid URL > ")
 
@@ -371,7 +370,7 @@ def dbust():
 def spider():
     while True:
         target_url = input_with_backspace("\nEnter a valid URL > ")
-        if not re.match(r"^https?://(?:www\.)?\w+\.\w{2,3}(?:/[\w/]*)*(?:\?.*)?$", target_url):
+        if not validators.url(target_url):
             print("Invalid URL. Please enter a valid URL that starts with http or https and ends with a domain name (e.g. https://example.com/).")
         else:
             break
@@ -821,4 +820,3 @@ while True:
         else:
             print("Unknown command:", user_input)
             print()
-
