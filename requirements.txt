@@ -2,6 +2,3 @@ dnspython
 requests
 scapy==2.4.5
 validators
-dns.resolver
-dns.rdatatype
-requests.packages.urllib3
