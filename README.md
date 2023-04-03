@@ -46,7 +46,10 @@ clear | Clears the screen.
 
 ### Examples
 * To start:
-``python3 v4c2.py or sudo python3 v4c2.py``
+``python3 v4c2.py``
+or
+``sudo python3 v4c2.py``
+(some modules require root)
 
 * To return to the terminal without exiting the script:
 ``bash``
