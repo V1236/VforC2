@@ -17,7 +17,7 @@ sudo python3 -m pip install -r requirements.txt
 
 ## Usage
 ```
-After installation and dependencies, navigate to the directory and isue "python3 v4c2.py" from the command line.
+After installation and dependencies, navigate to the directory and isue "python3 VforC2.py" from the command line.
 Begin with the "help" command and go from there. Currently it supports the following:
 Command | Description
 ------- | -----------
