@@ -46,9 +46,9 @@ clear | Clears the screen.
 
 ### Examples
 * To start:
-``python3 v4c2.py``
+``python3 VforC2.py``
 or
-``sudo python3 v4c2.py``
+``sudo python3 VforC2.py``
 (some modules require root)
 
 * To return to the terminal without exiting the script:
@@ -61,7 +61,7 @@ or
 ``sendall curl -O example.com/test.txt``
 
 ## Version
-**Current version is 1.0**
+**Current version is 2.0**
 
 ## Thanks
 **Thanks everyone who tries my script and/or provides feedback. I want to continue improving and building out more modules/commands. Let me know if you have any ideas or want to contribute**
