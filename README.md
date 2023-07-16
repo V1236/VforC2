@@ -12,7 +12,7 @@ git clone https://github.com/V1236/V4C2.git
 ## Dependencies:
 Many python dependencies are utilized and can be installed using the requirements file:
 ```
-sudo pip install -r requirements.txt
+sudo python3 -m pip install -r requirements.txt
 ```
 
 ## Usage
