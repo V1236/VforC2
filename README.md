@@ -6,7 +6,7 @@ Additionally it utilizes Sublist3r/subrute from https://github.com/aboul3la/Subl
 
 ## Installation
 ```
-git clone https://github.com/V1236/V4C2.git
+git clone https://github.com/V1236/VforC2.git
 ```
 
 ## Dependencies:
