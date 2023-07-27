@@ -845,8 +845,8 @@ while True:
         "  session 1-50' *Enters an interactive state with one session. Default code accepts up to 50 sessions*\n "
         " sendall *shell command*' *sends a shell command to be executed on all active sessions*\n "
         " background' *Exits the interactive state with a session and returns to the main prompt*\n "
-        " exit' *Ends the program. If sessions are active also use Cntrl + C*"
-        " clear' *clears the screen*\n ")
+        " exit' *Ends the program. If sessions are active also use Cntrl + C*\n "
+        "  clear' *clears the screen*\n ")
         print()
         continue
                 
