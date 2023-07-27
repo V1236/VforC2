@@ -1,7 +1,9 @@
 # About VforC2
-VforC2 or v4c2 is a Command & Control application coded in python. It contains modules that utilize penetration testing tools that typically come pre-installed in security oriented operating systems. It is meant to be used via the command line in Kali Linux or similar OS. Enter the associated commands to call modules, enabling you to listen for incoming connections, send shell commands to one or many connected clients, run vulnerability scans, preform brute force attacks, or simply interact with the regular terminal while holding onto connections in the background. I coded it with my preferences in mind and to interact with my custom administration tool/backdoor but any reverse shell connection type will do.
+VforC2 or v4c2 is a C2 & hacking toolkit application coded in python. It contains modules that utilize penetration testing tools that typically come pre-installed in security oriented operating systems. It is meant to be used via the command line in Kali Linux or similar OS. Enter the associated commands to call modules, enabling you to listen for incoming connections, send shell commands to one or many connected clients, run vulnerability scans, preform brute force attacks, or simply interact with the regular terminal while holding onto connections in the background. I coded it with my preferences in mind and to interact with my custom administration tool/backdoor but any reverse shell connection type will do.
 
-Currently contains modules that call the following (usually preinstalled) tools: Nmap, dirb, owasp-zap and hydra.
+Currently contains modules that call the following (usually preinstalled) tools: Nmap, dirb, ffuf, sqlmap, owasp-zap and hydra. 
+Base kali may not have ffuf but it is easily downloaded with "sudo apt-get install ffuf"
+
 Additionally it utilizes Sublist3r/subrute from https://github.com/aboul3la/Sublist3r
 
 ## Installation
@@ -34,12 +36,14 @@ sbrute | Performs subdomain busting utilizing subbrute with a wordlist to look f
 vulnweb | Calls owasp-zap for web app vulnerability scanning.
 vulnport | Calls nmap vulners for port based vulnerability scanning.
 login | Utilizes hydra to preform a brute force attack on a login point.
-listen *port* | Begin listening for incoming connections. Received connections are not displayed.
+fuzz | Utilizes ffuf to quickly enumerate endpoints on a target website.
+sqli | Utilizes sqlmap to attempt sql injection on a target endpoint.
+listen *port* | Begin listening for incoming connections. Received connections are displayed.
 sessions | Lists all incoming connections aka available sessions.
 session 1-50 | Enters an interactive state with one session. Default code accepts up to 50 sessions.
 sendall *shell command* | Sends a shell command to be executed on all active sessions.
 background | Exits the interactive state with a session and returns to the main prompt.
-exit | Ends the program. If you have any active sessions the script will hang until the connection closes. Use Ctrl + C.
+exit | Ends the program. If sessions are active also use Cntrl + C.
 clear | Clears the screen.
 
 ```
@@ -61,7 +65,7 @@ or
 ``sendall curl -O example.com/test.txt``
 
 ## Version
-**Current version is 2.0**
+**Current version is 3.0**
 
 ## Thanks
 **Thanks everyone who tries my script and/or provides feedback. I want to continue improving and building out more modules/commands. Let me know if you have any ideas or want to contribute**
