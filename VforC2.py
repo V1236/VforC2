@@ -77,7 +77,7 @@ def fuzz():
                 if validators.url(url):
                     break  # Exit the loop if a valid URL is provided
                 print("Invalid input. Please enter a valid URL (e.g., https://example.com/).")
-                
+
             while True:
                 custom_wordlist = input_with_backspace("Path/name of the wordlist (Press enter for default): ")
                 if custom_wordlist == "":
@@ -88,7 +88,7 @@ def fuzz():
                         break  # Exit the loop if the file is found
                 except FileNotFoundError:
                     print(f"{custom_wordlist} not found. Please try again.")
-                   
+
             while True:
                 try:
                     threads_input = input_with_backspace("How many threads? -t (Press enter for default): ")
@@ -103,22 +103,24 @@ def fuzz():
                             break
                 except ValueError:
                     print("Invalid thread count. Please enter a valid integer greater than zero.")
-                    
+
             while True:
                 try:
                     filterwords_input = input_with_backspace("Filter by number of words? -fw (Press enter for N/A): ")
                     if not filterwords_input:
                         filterwords = "" #Default value if Enter is pressed
                         break
-                    else: 
-                        filterwords = int(filterwords_input)
-                        if filterwords <= 0:
-                            print("-fw must be a positive integer greater than zero.")
+                    else:
+                        # Parse multiple integers from the input using regex
+                        filterwords_list = re.findall(r'\d+', filterwords_input)
+                        filterwords = ",".join(filterwords_list)
+                        if not filterwords:
+                            print("-fw must be a positive integer or comma-separated list of positive integers.")
                         else:
                             break
                 except ValueError:
-                    print("Invalid word count. Please enter a valid integer greater than zero.")
-            
+                    print("Invalid word count. Please enter a valid integer or comma-separated list of positive integers.")
+
             while True:
                 additional_options = input_with_backspace(f"Options/Parameters (-h for list. Press enter for default): ")
                 if additional_options == "":
@@ -130,7 +132,8 @@ def fuzz():
                     continue
                 else:
                     break
-            if filterwords == "":
+
+            if not filterwords:
                 command = f"ffuf -u {url}/FUZZ -w {custom_wordlist} {additional_options} -t {threads}"
             else:
                 command = f"ffuf -u {url}/FUZZ -w {custom_wordlist} {additional_options} -t {threads} -fw {filterwords}"
@@ -823,7 +826,7 @@ while True:
     else:
         user_input = ""
         
-    if user_input == "help":
+    if user_input.lower() == "help":
         print("\nCurrent commands:\n"
         "  help' *Display this list. More commands to come in future updates*\n "
         " bash' *Enters a bash terminal. The script is still running. Use exit to return*\n "
@@ -846,7 +849,7 @@ while True:
         " sendall *shell command*' *sends a shell command to be executed on all active sessions*\n "
         " background' *Exits the interactive state with a session and returns to the main prompt*\n "
         " exit' *Ends the program. If sessions are active also use Cntrl + C*\n "
-        "  clear' *clears the screen*\n ")
+        " clear' *clears the screen*\n ")
         print()
         continue
                 
@@ -861,7 +864,7 @@ while True:
         continue
         
     # If user enters the 'sqli' command, use sqlmap to attempt sql injection
-    if user_input == 'sqli':
+    if user_input.lower() == 'sqli':
         try:
             sqli()
             print()
@@ -871,7 +874,7 @@ while True:
         continue
         
     # If user enters the 'fuzz' command, use ffuf to enumerate endpoints
-    if user_input == 'fuzz':
+    if user_input.lower() == 'fuzz':
         try:
             fuzz()
             print()
@@ -881,7 +884,7 @@ while True:
         continue
         
     # If user enters the 'login' command, utilize hydra to brute force an endpoint
-    if user_input == 'login':
+    if user_input.lower() == 'login':
         try:
             login()
             print()
@@ -892,7 +895,7 @@ while True:
            
         
     # If user enters the 'scan' command, prompt for IP address and run the scan
-    if user_input == 'scan':
+    if user_input.lower() == 'scan':
         try:
             scan()
             print()
@@ -902,7 +905,7 @@ while True:
         continue
 
     # If user enters the 'sbrute' command, utilize subbrute to find subdomains using a 140k wordlist
-    if user_input == 'sbrute':
+    if user_input.lower() == 'sbrute':
         print("\nThis scan typically takes 25-40 minutes.\n")
         try:
             sbrute()
@@ -914,7 +917,7 @@ while True:
         
 
     # If user enters the 'sbust' command, utilize sublister to find subdomains
-    if user_input == 'sbust':
+    if user_input.lower() == 'sbust':
         try:
             sbust()
             print()
@@ -925,7 +928,7 @@ while True:
         
         
     # If user enters the 'vulnweb' command, utilize owasp-zap to preform a vulnerability scan
-    if user_input == 'vulnweb':
+    if user_input.lower() == 'vulnweb':
         print("\nThis scan typically takes 10-60 minutes depending on the complexity of the endpoint.")
         try:
             vulnweb()
@@ -937,7 +940,7 @@ while True:
         
         
     # If user enters the 'vulnport' command, utilize nmap to preform a vulnerability scan
-    if user_input == 'vulnport':
+    if user_input.lower() == 'vulnport':
         print("\nThis scan typically takes 5-10 minutes per host.")
         try:
             vulnport()
@@ -949,7 +952,7 @@ while True:
         
         
     # If user enters the 'dbust' command, enter into the directory busting module that utilizes dirb
-    if user_input == 'dbust':
+    if user_input.lower() == 'dbust':
         print("\nDefault wordlist typically takes 10-15 minutes to run through per directory\n")
         try:
             dbust()
@@ -961,7 +964,7 @@ while True:
         
 
     # If user enters the 'spider' command, enter into the url crawling module
-    if user_input == 'spider':
+    if user_input.lower() == 'spider':
         try:
             spider()
             print()
@@ -971,7 +974,7 @@ while True:
         continue
         
     # If user enters the 'ping' command, prompt for IP address and run the scan
-    if user_input == 'ping':
+    if user_input.lower() == 'ping':
         try:
             ping()
             print()
@@ -981,7 +984,7 @@ while True:
         continue
     
     # If user enters the 'arp' command, prompt for IP address and run the scan
-    if user_input == 'arp':
+    if user_input.lower() == 'arp':
         try:
             arp_function()
             print()
@@ -991,7 +994,7 @@ while True:
         continue
 
     # If user enters the 'chmac' command, show adapters and enter the change mac address module
-    if user_input == 'chmac':
+    if user_input.lower() == 'chmac':
         try:
             print()
             subprocess.call(['ifconfig'])
@@ -1003,7 +1006,7 @@ while True:
             print()
         continue
 
-    elif user_input.startswith('listen '):
+    elif user_input.lower().startswith('listen '):
         port_str = user_input.split(' ')[1]
         try:
             port = int(port_str)
@@ -1017,7 +1020,7 @@ while True:
             print("Invalid port number. Please enter a valid integer.")
     
     #If user enters the 'bash' command, spawn a new shell
-    elif user_input == 'bash':
+    elif user_input.lower() == 'bash':
         # Spawn a new shell
         try:
             subprocess.call(['/bin/bash'])
@@ -1028,7 +1031,7 @@ while True:
         continue
 
     # If user enters the 'sessions' command, list active sessions
-    elif user_input == 'sessions':
+    elif user_input.lower() == 'sessions':
         try:
             list_sessions()
         except Exception as e:
@@ -1037,11 +1040,11 @@ while True:
         continue
 
     # If user enters the 'exit' command, exit the script
-    elif user_input == 'exit':
+    elif user_input.lower() == 'exit':
         sys.exit()
         
     #clear the screen if clear comes through
-    elif user_input == 'clear':
+    elif user_input.lower() == 'clear':
         try:
             os.system('clear')
         except Exception as e:
@@ -1050,7 +1053,7 @@ while True:
         continue
 
     # If user enters the 'session' command, resume the previous connection as if you never left
-    elif user_input.startswith('session '):
+    elif user_input.lower().startswith('session '):
         try:
             session_id = int(user_input.split()[1]) - 1
             if session_id < 0:
