@@ -27,6 +27,14 @@ import ctypes
 import dns.resolver
 import dns.rdatatype
 import tqdm
+import shutil
+import phonenumbers, sys, folium, os, argparse
+from colorama import init, Fore
+import phonenumbers
+from phonenumbers import geocoder, timezone, carrier
+from opencage.geocoder import OpenCageGeocode
+import folium
+
 try:
     import requests.packages.urllib3
     requests.packages.urllib3.disable_warnings()
@@ -35,13 +43,17 @@ except:
 
 sessions = {}
 session_counter = 1
+terminal_size = shutil.get_terminal_size((80, 20))  # Default to 80x20 if unable to determine
+terminal_width = terminal_size.columns
+password = '7oOxM0QT' #Replace to connect to msfconsole
 
-# Generate a random integer between 1 and 3
-random_num = random.randint(1, 2)
+def banner():
+    # Generate a random integer between 1 and 3
+    random_num = random.randint(1, 2)
 
-# Print one of the three outputs based on the random number generated
-if random_num == 1:
-    print("""
+    # Print one of the three outputs based on the random number generated
+    if random_num == 1:
+        print("""
  █████   █████    ██████                       █████████   ████████ 
 ░░███   ░░███    ███░░███                     ███░░░░░███ ███░░░░███
  ░███    ░███   ░███ ░░░   ██████  ████████  ███     ░░░ ░░░    ░███
@@ -55,8 +67,8 @@ if random_num == 1:
 # Coded By Caleb McDaniels
 """)
 
-if random_num == 2:
-    print("""
+    if random_num == 2:
+        print("""
 Y8b Y88888P  dP,e,                    e88'Y88 ,8,"88e  
  Y8b Y888P   8b "   e88 88e  888,8,  d888  'Y  "  888D 
   Y8b Y8P   888888 d888 888b 888 "  C8888         88P  
@@ -64,8 +76,58 @@ Y8b Y88888P  dP,e,                    e88'Y88 ,8,"88e
     Y8P      888    "88 88"  888      "88,d88  8888888 
                                                        
                                                                                                               
-# Coded By Caleb McDaniels
-""")
+    # Coded By Caleb McDaniels
+    """)
+    
+banner()
+
+def locate(phone_number):
+    # Clean the phone number
+    cleaned_phone_number = clean_phone_number(phone_number)
+
+    # Process the phone number
+    location = process_number(cleaned_phone_number)
+    if location:
+        latitude, longitude = get_approx_coordinates(location)
+
+def process_number(number):
+    try:
+        parsed_number = phonenumbers.parse(number)
+        print(f"[+] Attempting to track location of "
+              f"{phonenumbers.format_number(parsed_number, phonenumbers.PhoneNumberFormat.INTERNATIONAL)}.")
+        print(f"[+] Time Zone ID: {timezone.time_zones_for_number(parsed_number)}")
+
+        location = geocoder.description_for_number(parsed_number, "en")
+        if location:
+            print(f"[+] Region: {location}")
+        else:
+            print(f"[-] Region: Unknown")
+
+        service_provider = carrier.name_for_number(parsed_number, 'en')
+        if service_provider:
+            print(f"[+] Service Provider:  {service_provider}")
+
+        return location
+
+    except Exception as e:
+        print(f"[-] Error: {e}. Please specify a valid phone number (with country code) ")
+        return None
+
+def get_approx_coordinates(location):
+    try:
+        coder = OpenCageGeocode("6e50ad57f06b4222a8586a7125bdef50")  # Replace with your OpenCage API key
+        results = coder.geocode(location)
+        latitude = results[0]['geometry']['lat']
+        longitude = results[0]['geometry']['lng']
+        print(f"[+] Latitude: {latitude}, Longitude: {longitude}")
+        return latitude, longitude
+
+    except Exception as e:
+        print(f"[-] Error: {e}. Could not get the location of this number. Please specify a valid phone number ")
+        return None, None
+
+def clean_phone_number(phone_number):
+    return ''.join(char for char in phone_number if char.isdigit() or char == '+')
 
 def send_file(conn, filename):
     try:
@@ -513,8 +575,70 @@ def sbrute():
                 print(f"Error running command: {e}")
     except KeyboardInterrupt:
         print("\nKeyboard interrupt detected. Exiting...\n")
+        
+def vulnwebnikto():
+    try:
+        while True:
+            ip = input_with_backspace("\nIP address or URL to scan (Press enter to exit)> ")
+            if not ip:
+                break
+            elif validators.url(ip):
+                hostname = urllib.parse.urlsplit(ip).hostname
+                if hostname is None:
+                    print("Invalid URL entered. Please try again.")
+                    continue
 
-def vulnweb():
+                while True:
+                    additional_options = input_with_backspace(f"Options/Parameters (-h for list. Press enter for default): ")
+                    if not additional_options:
+                        command = f"nikto -h {hostname} -Display 4P -C all"
+                    elif additional_options.lower() == "-h":
+                        command = "nikto -Help"
+                    else:
+                        command = f"nikto {additional_options} {hostname}"
+
+                    print()
+                    print(command)
+                    print()
+                    try:
+                        subprocess.call(command, shell=True)
+                    except subprocess.CalledProcessError as e:
+                        print(f"Error running command: {e}")
+
+                    # Break the inner loop only if valid options were provided
+                    if additional_options.lower() != "-h":
+                        break
+
+            elif validate_ip_address(ip):
+                while True:
+                    additional_options = input_with_backspace(f"Options/Parameters (-h for list. Press enter for default): ")
+                    if not additional_options:
+                        command = f"nikto -h {ip} -Display 4P -C all"
+                    elif additional_options.lower() == "-h":
+                        command = "nikto -Help"
+                    else:
+                        command = f"nikto {additional_options} {ip}"
+
+                    print()
+                    print(command)
+                    print()
+                    try:
+                        subprocess.call(command, shell=True)
+                    except subprocess.CalledProcessError as e:
+                        print(f"Error running command: {e}")
+
+                    # Break the inner loop only if valid options were provided
+                    if additional_options.lower() != "-h":
+                        break
+
+            else:
+                print("Invalid IP or URL entered. Please try again.")
+                continue
+
+    except KeyboardInterrupt:
+        print("\nKeyboard interrupt detected. Exiting...\n")
+
+def vulnwebzap():
     print("\n**OUTFILE OR OWASP GUI IS RECOMMENDED**")
     allowed_extensions = (".html", ".json", ".md", ".xml")
     try:
@@ -923,6 +1047,13 @@ def handle_connection(s, conn, addr, session_num):
                         time.sleep(0.5)
                         sys.stdout.flush()
                         
+                    elif command.lower().startswith("clear"):
+                        try:
+                            os.system('clear')
+                        except Exception as e:
+                            print(f"Error occurred: {e}")
+                            print()
+                        
                     else:
                         command += "\n"
                         conn.send(command.encode())
@@ -971,29 +1102,54 @@ while True:
         user_input = ""
         
     if user_input.lower() == "help":
-        print("\nCurrent commands:\n"
-        "  help' *Display this list. More commands to come in future updates*\n "
-        " bash' *Enters a bash terminal. The script is still running. Use exit to return*\n "
-        " arp' *Does an ARP scan to discover hosts on the local network. (Needs root)*\n "
-        " ping' *Calls nmap to discover hosts using a ping scan*\n "
-        " scan' *Calls nmap preform a scan of your choosing*\n "
-        " chmac' *Changes your MAC address. (Needs Root)*\n "
-        " spider' *Crawls the HTML of a target website for interesting endpoints such as .js*\n "
-        " dbust' *Performs directory busting utilizing dirb to look for hidden directories on a target website.*\n "
-        " sbust' *Performs quick subdomain busting utilizing Sublist3r to look for subdomains on a target website.*\n "
-        " sbrute' *Performs subdomain busting utilizing subbrute with a wordlist to look for subdomains on a target website.*\n "
-        " vulnweb' *Calls owasp-zap for web app vulnerability scanning.*\n "
-        " vulnport' *Calls nmap vulners for port based vulnerability scanning.*\n "
-        " login' *Utilizes hydra to preform a brute force attack on a login point.*\n "
-        " sqli' *Utilizes sqlmap to attempt sql injection on a target website.*\n "
-        " fuzz' *Utilizes ffuf to quickly enumerate endpoints on a target website.*\n "
-        " listen *port*' *Begin listening for incoming connections. Received connections are displayed*.\n "
-        " sessions' *lists all incoming connections aka availible sessions*\n"
-        "  session 1-50' *Enters an interactive state with one session. Default code accepts up to 50 sessions*\n "
-        " sendall *shell command*' *sends a shell command to be executed on all active sessions*\n "
-        " background' *Exits the interactive state with a session and returns to the main prompt*\n "
-        " exit' *Ends the program. If sessions are active also use Cntrl + C*\n "
-        " clear' *clears the screen*\n ")
+        print("**CURRENT COMMAND & AVAILABLE MODULES:**")
+        print()
+        
+        print("**SELF COMMANDS:**")
+        print("  -banner *Displays our awesome banner*")
+        print("  -help *Display this list. More commands to come in future updates*")
+        print("  -exit *Ends the program. If sessions are active also use Cntrl + C*")
+        print("  -clear *clears the screen*")
+        print()
+
+        print("**UTILITY COMMANDS:**")
+        print("  -bash *Enters a bash terminal. The script is still running. Use exit to return*")
+        print("  -chmac *Changes your MAC address. (Needs Root)*")
+        print("  -locate *full phone number* *sends a very approximate location for the provided phone number*")
+        print()
+
+        print("**SESSION AND SHELL COMMANDS:**")
+        print("  -listen *port* *Begin listening for incoming connections. Received connections are displayed*.")
+        print("  -sessions *lists all incoming connections aka availible sessions*")
+        print("  -session 1-50 *Enters an interactive state with one session. Default code accepts up to 50 sessions*")
+        print("  -sendall *shell command*' *sends a shell command to be executed on all active sessions*")
+        print()
+
+        print("**NETWORK DISCOVERY COMMANDS:**")
+        print("  -arp *Does an ARP scan to discover hosts on the local network. (Needs root)*")
+        print("  -ping *Calls nmap to discover hosts using a ping scan*")
+        print("  -scan *Calls nmap preform a scan of your choosing*")
+        print()
+
+        print("**WEB APPLICATION DISCOVERY COMMANDS:**")
+        print("  -spider *Crawls the HTML of a target website for interesting endpoints such as .js*")
+        print("  -dbust *Performs directory busting utilizing dirb to look for hidden directories on a target website.*")
+        print("  -fuzz *Utilizes ffuf to quickly enumerate endpoints on a target website.*")
+        print("  -sbust *Performs quick subdomain busting utilizing Sublist3r to look for subdomains on a target website.*")
+        print("  -sbrute *Performs subdomain busting utilizing subbrute with a wordlist to look for subdomains on a target website.*")
+        print()
+
+        print("**VULNERABILITY SCANNING COMMANDS:**")
+        print("  -vulnwebzap *Calls owasp-zap for web app vulnerability scanning.*")
+        print("  -vulnwebnikto *Calls nikto for web app vulnerability scanning.*")
+        print("  -vulnport *Calls nmap vulners for port based vulnerability scanning.*")
+        print()
+
+        print("**EXPLOITATION MODULES:**")
+        print("  -login' *Utilizes hydra to preform a brute force attack on a login point.*")
+        print("  -sqli *Utilizes sqlmap to attempt sql injection on a target website.*")
+        print("  -msfsearch *search metasploit for module info.*")
+        print("  -msfuse *utilize a metasploit module.*INCOMPLETE*")
         print()
         continue
                 
@@ -1004,6 +1160,18 @@ while True:
             send_to_all_sessions(command, sessions)
         except Exception as e:
             print(f"Error occurred during execution {e}")
+            print()
+        continue
+        
+    # If user enters the 'locate' command, geolocate a phone number
+    elif user_input.lower().startswith("locate "):
+        phone_number = user_input.split("locate ")[1]
+        try:
+            init()
+            locate(f"+{phone_number}")
+            print()
+        except Exception as e:
+            print(f"Error occurred during scan: {e}")
             print()
         continue
         
@@ -1071,11 +1239,22 @@ while True:
         continue
         
         
-    # If user enters the 'vulnweb' command, utilize owasp-zap to preform a vulnerability scan
-    if user_input.lower() == 'vulnweb':
+    # If user enters the 'vulnwebzap' command, utilize owasp-zap to preform a vulnerability scan
+    if user_input.lower() == 'vulnwebzap':
         print("\nThis scan typically takes 10-60 minutes depending on the complexity of the endpoint.")
         try:
-            vulnweb()
+            vulnwebzap()
+            print()
+        except Exception as e:
+            print(f"Error occurred during scan: {e}")
+            print()
+        continue
+        
+    # If user enters the 'vulnwebnikto' command, utilize nikto to preform a vulnerability scan
+    if user_input.lower() == 'vulnwebnikto':
+        print("\nThis scan typically takes 5-15 minutes depending on the complexity of the endpoint.")
+        try:
+            vulnwebnikto()
             print()
         except Exception as e:
             print(f"Error occurred during scan: {e}")
@@ -1191,6 +1370,15 @@ while True:
     elif user_input.lower() == 'clear':
         try:
             os.system('clear')
+        except Exception as e:
+            print(f"Error occurred: {e}")
+            print()
+        continue
+        
+    #clear the screen if clear comes through
+    elif user_input.lower() == 'banner':
+        try:
+            banner()
         except Exception as e:
             print(f"Error occurred: {e}")
             print()
