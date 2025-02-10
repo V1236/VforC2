@@ -1,4 +1,4 @@
-# About VforC2
+# About VforC2 (repo is OUTDATED & Will not be updated)
 VforC2 or v4c2 is a C2 & hacking toolkit application coded in python. It contains modules that utilize penetration testing tools that typically come pre-installed in security oriented operating systems. It is meant to be used via the command line in Kali Linux or similar OS. Enter the associated commands to call modules, enabling you to listen for incoming connections, send shell commands to one or many connected clients, run vulnerability scans, preform brute force attacks, or simply interact with the regular terminal while holding onto connections in the background. I coded it with my preferences in mind and to interact with my custom administration tool/backdoor but any reverse shell connection type will do.
 
 Currently contains modules that call the following (usually preinstalled) tools: Nmap, dirb, ffuf, sqlmap, owasp-zap and hydra. 
